@@ -1,0 +1,82 @@
+local Distance = 999999
+
+local function MakeInv(Char)
+    for i,v in pairs(Char:GetDescendants()) do
+        if v:IsA("Part") or v:IsA('MeshPart') then
+            v.Material = 'ForceField'
+        end
+    end
+end
+
+local Player = game.Players.LocalPlayer
+local Mouse = Player:GetMouse()
+local OldChar = Player.Character
+OldChar.Archivable = true
+Character = OldChar:Clone()
+Character.Parent = game.Lighting
+MakeInv(Character)
+Hum = Character:FindFirstChild('Humanoid')
+RealHum = OldChar:FindFirstChild('Humanoid')
+local HRP = Character:FindFirstChild('HumanoidRootPart')
+local FakeHRP = OldChar:FindFirstChild('HumanoidRootPart')
+
+if Hum then
+    Hum.NameDisplayDistance = 0
+end
+
+
+Invisible = false
+local CFramer = game:GetService('RunService').Heartbeat:Connect(function()
+    if Invisible == false then
+    elseif FakeHRP and HRP then
+        FakeHRP.CFrame = HRP.CFrame * CFrame.new(0,Distance,0)
+    end
+end)
+
+local MouseMain1 = game:GetService('UserInputService').InputBegan:Connect(function(Key,Chatting)
+    if Chatting then return end
+
+    if Key.KeyCode == Enum.KeyCode.X then
+        if Invisible == false then
+            Invisible = true
+            if FakeHRP then
+                local BodyVelocity = Instance.new("BodyVelocity")
+                BodyVelocity.Velocity = Vector3.new(0, 0, 0)
+                BodyVelocity.Parent = FakeHRP
+                BodyVelocity.Name = 'InvisibleHax'
+            end
+            Player.Character = Character
+            Character.Parent = OldChar
+            HRP.CFrame = FakeHRP.CFrame
+            if Character:FindFirstChild('Humanoid') then
+                workspace.CurrentCamera.CameraSubject = Character:FindFirstChild('Humanoid')
+            end
+        else
+            if FakeHRP then
+                if FakeHRP:FindFirstChild('InvisibleHax') then
+                    FakeHRP.InvisibleHax:Destroy()
+                end
+            end
+            Invisible = false
+            Player.Character = OldChar
+            FakeHRP.CFrame = HRP.CFrame
+            Character.Parent = game.Lighting
+            if OldChar:FindFirstChild('Humanoid') then
+                workspace.CurrentCamera.CameraSubject = OldChar:FindFirstChild('Humanoid')
+            end
+        end
+    end
+end)
+
+if Hum then
+    Hum.Died:Connect(function()
+        if OldChar then
+            Player.Character = OldChar
+            RealHum.Health = 0
+        end
+        CFramer:Disconnect()
+        MouseMain1:Disconnect()
+        wait(0.2)
+        Character:Destroy()
+    end)
+end
